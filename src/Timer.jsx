@@ -1,60 +1,47 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
+import './Index.scss'
 
-const Timer = () => {
+const App = () => {
+  const [time, setTime] = React.useState(0);
+  const [timerOn, setTimerOn] = React.useState(false);
 
-  //Seconds will store the value of our timer
-	const [seconds, setSeconds] = useState(0);
+  React.useEffect(() => {
+    let interval = null;
 
-  //isActive will store the timer’s state for whether it is currently timing or paused
-  //Timer in paused state (isActive set to false) 
-	const [isActive, setIsActive] = useState(false);
+    if (timerOn) {
+      interval = setInterval(() => {
+        setTime((prevTime) => prevTime + 10);
+      }, 10);
+    } else if (!timerOn) {
+      clearInterval(interval);
+    }
 
-  //When the toggle function is called it will change the value of isActive to be the opposite of what it currently is
-	function toggle() {
-		setIsActive(!isActive);
-	}
+    return () => clearInterval(interval);
+  }, [timerOn]);
 
-	function reset() {
-		setSeconds(0);
-		setIsActive(false);
-	}
+  return (
+    <div className="Timers">
+      <h2>Stopwatch</h2>
+      <div id="display">
+        <span>{("0" + Math.floor((time / 60000) % 60)).slice(-2)}:</span>
+        <span>{("0" + Math.floor((time / 1000) % 60)).slice(-2)}:</span>
+        <span>{("0" + ((time / 10) % 100)).slice(-2)}</span>
+      </div>
 
-
-  // If isActive is true, assign the previously created interval variable to a new interval that triggers 
-  //every 1,000 milliseconds
-	useEffect(() => {
-		let interval = null;
-		if (isActive) {
-			interval = setInterval(() => {
-				setSeconds(seconds => seconds + 1);
-			}, 1000);
-
-      //If the isActive value is false, clearing out the interval 
-		} else if (!isActive && seconds !== 0) {
-			clearInterval(interval);
-		}
-
-      //Returning clearInterval out of the useEffect method to cleanup after
-		return () => clearInterval(interval);
-	}, [isActive, seconds]);
-
-	return (
-		<div className="app">
-			<div className="time">{seconds}s</div>
-			<div className="row">
-				<button
-					className={`button button-primary button-primary-${
-						isActive ? "active" : "inactive"
-					}`}
-					onClick={toggle}>
-					{isActive ? "Pause" : "Start"}
-				</button>
-				<button className="button" onClick={reset}>
-					Reset
-				</button>
-			</div>
-		</div>
-	);
+      <div id="buttons">
+        {!timerOn && time === 0 && (
+          <button onClick={() => setTimerOn(true)}>Start</button>
+        )}
+        {timerOn && <button onClick={() => setTimerOn(false)}>Stop</button>}
+        {!timerOn && time > 0 && (
+          <button onClick={() => setTime(0)}>Reset</button>
+        )}
+        {!timerOn && time > 0 && (
+          <button onClick={() => setTimerOn(true)}>Resume</button>
+        )}
+      </div>
+    </div>
+  );
 };
 
-export default Timer;
+export default App;
